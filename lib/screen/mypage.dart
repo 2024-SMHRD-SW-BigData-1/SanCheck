@@ -1,25 +1,7 @@
 import 'package:flutter/material.dart';
-import 'login_page.dart'; // login_page.dart 파일을 import
-import 'bottom_bar.dart'; // bottom_bar.dart 파일을 import
-
-void main() {
-  runApp(const FigmaToCodeApp());
-}
-
-// Main application widget
-class FigmaToCodeApp extends StatelessWidget {
-  const FigmaToCodeApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color.fromARGB(255, 18, 32, 47),
-      ),
-      home: const MyPage(),
-    );
-  }
-}
+import 'package:sancheck/screen/my_info.dart';
+import 'package:sancheck/screen/login_page.dart'; // login_page.dart 파일을 import
+import 'package:sancheck/service/auth_service.dart';
 
 class MyPage extends StatefulWidget {
   const MyPage({super.key});
@@ -29,90 +11,64 @@ class MyPage extends StatefulWidget {
 }
 
 class _MyPageState extends State<MyPage> {
-  int _currentIndex = 3;
 
-  void _onNavItemTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-      // 페이지 전환 로직 추가
-      switch (index) {
-        case 0:
-        // '등산하기' 페이지로 이동
-          break;
-        case 1:
-        // 'HOME' 페이지로 이동
-          break;
-        case 2:
-        // '커뮤니티' 페이지로 이동
-          break;
-        case 3:
-        // 현재 페이지는 새로고침
-          break;
-      }
-    });
-  }
+  final AuthService _authService = AuthService(); // AuthService 인스턴스 생성
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            color: Colors.white,
-            child: Stack(
-              children: [
-                // 프로필 정보
-                Positioned(
-                  left: 10,
-                  top: 69,
-                  child: Container(
-                    width: 54,
-                    height: 54,
-                    decoration: ShapeDecoration(
-                      color: Color(0xFFD9D9D9),
-                      shape: OvalBorder(),
-                    ),
+    return Stack(
+      children: [
+        Container(
+          width: double.infinity,
+          height: double.infinity,
+          color: Colors.white,
+          child: Stack(
+            children: [
+              // 프로필 정보
+              Positioned(
+                left: 10,
+                top: 69,
+                child: Container(
+                  width: 54,
+                  height: 54,
+                  decoration: ShapeDecoration(
+                    color: Color(0xFFD9D9D9),
+                    shape: OvalBorder(),
                   ),
                 ),
-                Positioned(
-                  left: 75,
-                  top: 83,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('👶🏻 등린이', style: TextStyle(fontSize: 20, color: Colors.grey)),
-                      Text('팜하니', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black)),
-                    ],
-                  ),
+              ),
+              Positioned(
+                left: 75,
+                top: 83,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('👶🏻 등린이', style: TextStyle(fontSize: 20, color: Colors.grey)),
+                    Text('팜하니', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black)),
+                  ],
                 ),
-                // 메뉴 버튼들
-                Positioned(
-                  left: 47,
-                  top: 155,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildMenuButton('내 정보'),
-                      SizedBox(height: 10),
-                      _buildMenuButton('등산 기록'),
-                      SizedBox(height: 10),
-                      _buildMenuButton('수집 메달'),
-                      SizedBox(height: 10),
-                      _buildLogoutButton(context), // 로그아웃 버튼 수정
-                    ],
-                  ),
+              ),
+              // 메뉴 버튼들
+              Positioned(
+                left: 47,
+                top: 155,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildMenuButton('내 정보'),
+                    SizedBox(height: 10),
+                    _buildMenuButton('등산 기록'),
+                    SizedBox(height: 10),
+                    _buildMenuButton('수집 메달'),
+                    SizedBox(height: 10),
+                    _buildLogoutButton(context), // 로그아웃 버튼 수정
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
-      bottomNavigationBar: BottomBar(
-        currentIndex: _currentIndex,
-        onTap: _onNavItemTapped,
-      ),
+        ),
+      ],
     );
   }
 
@@ -124,6 +80,17 @@ class _MyPageState extends State<MyPage> {
       child: ElevatedButton(
         onPressed: () {
           // 여기에 버튼 클릭 시 실행할 기능을 추가하세요.
+          switch (title) {
+            case '내 정보':
+              Navigator.push(context, MaterialPageRoute(builder: (_)=>MyInfo()));
+              break;
+            case '등산 기록':
+              return;
+            case '수집 메달':
+              return;
+            default:
+              return;
+          }
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.green, // 초록색 버튼
@@ -150,11 +117,7 @@ class _MyPageState extends State<MyPage> {
       height: 40,
       child: ElevatedButton(
         onPressed: () {
-          // 로그아웃 클릭 시 login_page.dart로 이동
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => LoginPage()),
-          );
+          handleLogout();
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.grey,
@@ -172,5 +135,20 @@ class _MyPageState extends State<MyPage> {
         ),
       ),
     );
+  }
+
+  void handleLogout() async {
+    try {
+      await _authService.logout(); // AuthService를 사용하여 로그아웃 처리
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => LoginPage()), // 이동할 페이지
+            (Route<dynamic> route) => false, // 모든 이전 화면을 제거
+      );
+    } catch (e) {
+      print('Logout failed: $e');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('로그아웃 실패'), backgroundColor: Colors.redAccent));
+    }
   }
 }

@@ -1,8 +1,6 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:sancheck/service/auth_service.dart';
 import 'package:sancheck/screen/login_page.dart';
-
-Dio dio = Dio();
 
 class FindPwNext extends StatefulWidget {
   const FindPwNext({super.key, required this.userId});
@@ -68,6 +66,35 @@ class _FindPwNextState extends State<FindPwNext> {
     );
   }
 
+  void handleFindPwNext(context, String userId) async {
+    String userPw = _passwordController.text;
+    String userConfirmPw = _confirmPasswordController.text;
+
+    if (userPw.isEmpty || userConfirmPw.isEmpty) {
+      return;
+    }
+
+    if (userPw != userConfirmPw) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('비밀번호를 일치시켜주세요.')));
+      return;
+    }
+
+    final authService = AuthService();
+    final bool isSuccessed = await authService.changePassword(userId, userPw);
+
+    if (isSuccessed) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('비밀번호 변경 성공', style: TextStyle(color: Colors.black,)), backgroundColor: Colors.lightBlueAccent,));
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => LoginPage()), // 이동할 페이지
+            (Route<dynamic> route) => false, // 모든 이전 화면을 제거
+      );
+    } else {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar(); // 현재 스낵바 숨기기
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('비밀번호 변경 실패'), backgroundColor: Colors.redAccent,));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -131,55 +158,4 @@ class _FindPwNextState extends State<FindPwNext> {
       ),
     );
   }
-
-  void handleFindPwNext(context, String userId) async{
-    String userPw = _passwordController.text;
-    String userConfirmPw = _confirmPasswordController.text;
-
-    print(userId);
-
-    if(userPw.isEmpty || userConfirmPw.isEmpty){
-      return;
-    }
-
-    if(userPw != userConfirmPw){
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('비밀번호를 일치시켜주세요.')));
-      return;
-    }
-
-    try{
-      // 서버 통신
-      String url = "http://172.28.112.1:8000/user/handleFindPwNext";
-      Response res = await dio.post(url,
-          data: {
-            'user_pw' : userPw,
-            'user_id' : userId
-          }
-      );
-      // 요청이 완료된 후에만 출력
-      print('Request URL: ${res.realUri}');
-      print('Status Code: ${res.statusCode}');
-      print('Response Data: ${res.data}');
-
-      bool isSuccessed = res.data['success'];
-
-      if(isSuccessed){
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('비밀번호 변경 성공', style: TextStyle(color: Colors.black,),), backgroundColor: Colors.lightBlueAccent,));
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => LoginPage()), // 이동할 페이지
-              (Route<dynamic> route) => false, // 모든 이전 화면을 제거
-        );
-      }else{
-        ScaffoldMessenger.of(context).hideCurrentSnackBar(); // 현재 스낵바 숨기기
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('비밀번호 변경 실패') , backgroundColor: Colors.redAccent,));
-      }
-    }catch(e){
-      print('Error occurred: $e');
-      ScaffoldMessenger.of(context).hideCurrentSnackBar(); // 현재 스낵바 숨기기
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('비밀번호 변경 실패') , backgroundColor: Colors.redAccent,));
-    }
-  }
-
-
 }

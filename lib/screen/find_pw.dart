@@ -1,10 +1,8 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sancheck/screen/find_pw_next.dart';
+import 'package:sancheck/service/auth_service.dart';
 import 'phone_formatter.dart';
-
-Dio dio = Dio();
 
 class FindPw extends StatelessWidget {
   FindPw({super.key});
@@ -12,6 +10,7 @@ class FindPw extends StatelessWidget {
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
+  final AuthService _authService = AuthService(); // AuthService 인스턴스 생성
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +49,7 @@ class FindPw extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: () {
                           // 비밀번호 찾기 버튼 클릭 시 동작
-                          handleFindPw(context);
+                          _handleFindPw(context);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFF6DA462),
@@ -115,48 +114,39 @@ class FindPw extends StatelessWidget {
     );
   }
 
-  void handleFindPw(context) async{
+  Future<void> _handleFindPw(BuildContext context) async {
     String userId = _idController.text;
     String userName = _nameController.text;
     String userPhone = _phoneController.text;
 
-    if(userId.isEmpty || userName.isEmpty || userPhone.isEmpty){
+    if (userId.isEmpty || userName.isEmpty || userPhone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('아이디, 이름, 전화번호를 입력해 주세요.'), backgroundColor: Colors.redAccent),
+      );
       return;
     }
 
-    try{
-      // 서버 통신
-      String url = "http://172.28.112.1:8000/user/handleFindPw";
-      Response res = await dio.post(url,
-          data: {
-            'user_id' : userId,
-            'user_name': userName,
-            'user_phone' : userPhone,
-          }
-      );
-      // 요청이 완료된 후에만 출력
-      print('Request URL: ${res.realUri}');
-      print('Status Code: ${res.statusCode}');
-      print('Response Data: ${res.data}');
+    try {
+      final response = await _authService.findPassword(userId, userName, userPhone);
+      final bool isSuccessed = response['success'];
 
-      bool isSuccessed = res.data['success'];
-
-      if(isSuccessed){
+      if (isSuccessed) {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => FindPwNext(userId: userId,)),
+          MaterialPageRoute(builder: (context) => FindPwNext(userId: userId)),
         );
-      }else{
+      } else {
         ScaffoldMessenger.of(context).hideCurrentSnackBar(); // 현재 스낵바 숨기기
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('비밀번호 찾기 실패') , backgroundColor: Colors.redAccent,));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('비밀번호 찾기 실패'), backgroundColor: Colors.redAccent),
+        );
       }
-    }catch(e){
+    } catch (e) {
       print('Error occurred: $e');
       ScaffoldMessenger.of(context).hideCurrentSnackBar(); // 현재 스낵바 숨기기
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('비밀번호 찾기 실패') , backgroundColor: Colors.redAccent,));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('비밀번호 찾기 실패'), backgroundColor: Colors.redAccent),
+      );
     }
   }
-
-
-
 }

@@ -1,16 +1,14 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'phone_formatter.dart'; // 새로운 파일에서 클래스를 가져오는 경우
-
-
-Dio dio = Dio();
+import 'package:sancheck/service/auth_service.dart';
+import 'phone_formatter.dart'; // 전화번호 포맷터 import
 
 class FindId extends StatelessWidget {
   FindId({super.key});
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
+  final AuthService _authService = AuthService(); // AuthService 인스턴스 생성
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +45,7 @@ class FindId extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: () {
                           // 아이디 찾기 버튼 클릭 시 동작
-                          handleFindId(context);
+                          _handleFindId(context);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFF6DA462),
@@ -112,8 +110,7 @@ class FindId extends StatelessWidget {
     );
   }
 
-  // 다이얼로그 표시 함수
-  void showIdDialog(BuildContext context, List<dynamic> userIds, String userName) {
+  void _showIdDialog(BuildContext context, List<String> userIds, String userName) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -134,54 +131,37 @@ class FindId extends StatelessWidget {
     );
   }
 
-
-  //아이디 찾기
-  void handleFindId(context) async{
+  Future<void> _handleFindId(BuildContext context) async {
     String userName = _nameController.text;
     String userPhone = _phoneController.text;
 
-    if(userName.isEmpty || userPhone.isEmpty){
+    if (userName.isEmpty || userPhone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('이름과 전화번호를 입력해 주세요.'), backgroundColor: Colors.redAccent),
+      );
       return;
     }
 
-    try{
-      // 서버 통신
-      String url = "http://172.28.112.1:8000/user/handleFindId";
-      Response res = await dio.post(url,
-          data: {
-            'user_name': userName,
-            'user_phone' : userPhone,
-          }
-      );
-      // 요청이 완료된 후에만 출력
-      print('Request URL: ${res.realUri}');
-      print('Status Code: ${res.statusCode}');
-      print('Response Data: ${res.data}');
+    try {
+      final response = await _authService.findId(userName, userPhone);
+      final bool isSuccessed = response['success'];
+      final List<dynamic> listData = response['user_id'];
+      final List<String> userIds = listData.map((item) => item['user_id'] as String).toList();
 
-      bool isSuccessed = res.data['success'];
-      print(res.data['user_id']);
-      List<dynamic> listData = res.data['user_id'];
-
-      // user_id의 값만 추출
-      List userIds = listData.map((item) => item['user_id']!).toList();
-
-      if(isSuccessed){
-        showIdDialog(context, userIds, userName);
-
-        
-        
-      }else{
+      if (isSuccessed) {
+        _showIdDialog(context, userIds, userName);
+      } else {
         ScaffoldMessenger.of(context).hideCurrentSnackBar(); // 현재 스낵바 숨기기
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('아이디 찾기 실패') , backgroundColor: Colors.redAccent,));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('아이디 찾기 실패'), backgroundColor: Colors.redAccent),
+        );
       }
-    }catch(e){
+    } catch (e) {
       print('Error occurred: $e');
       ScaffoldMessenger.of(context).hideCurrentSnackBar(); // 현재 스낵바 숨기기
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('아이디 찾기 실패') , backgroundColor: Colors.redAccent,));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('아이디 찾기 실패'), backgroundColor: Colors.redAccent),
+      );
     }
-
   }
-
-
-
 }
