@@ -1,24 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:sancheck/screen/chat.dart';
-import 'package:sancheck/screen/community.dart';
-import 'package:sancheck/screen/community_post.dart';
-import 'package:sancheck/screen/custom_bottom_nav_bar.dart';
-import 'package:sancheck/screen/delete_id.dart';
-import 'package:sancheck/screen/find_pw.dart';
-import 'package:sancheck/screen/find_pw_next.dart';
-import 'package:sancheck/screen/hike.dart';
-import 'package:sancheck/screen/home.dart';
-import 'package:sancheck/screen/home_mt_detail.dart';
-import 'package:sancheck/screen/join_page.dart';
-import 'package:sancheck/screen/login_page.dart';
-import 'package:sancheck/screen/gpx_navigation.dart';
-import 'package:sancheck/screen/login_success.dart';
-import 'package:sancheck/screen/my_info.dart';
-import 'package:sancheck/screen/mypage.dart';
+import 'package:provider/provider.dart';
+import 'package:sancheck/provider/mountain_provider.dart';
+import 'package:sancheck/screen/loading_page.dart';
+import 'package:sancheck/test/weather_api_test.dart';
+//import 'package:sancheck/screen/login_page.dart';
+//import 'package:sancheck/test/chatgpt_api_test.dart';
+// import 'package:sancheck/test/trail_import_test.dart';
+//import 'package:sancheck/test/weather_api_test.dart';
 
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => MountainProvider(),
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -27,10 +24,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home:LoginSuccess(selectedIndex: 1,),
+      home: LoadingPage(),
     );
   }
 }
+
+
 
 
 
