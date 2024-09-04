@@ -22,6 +22,7 @@ class _JoinPageState extends State<JoinPage> {
   final TextEditingController _birthdateController = TextEditingController();
   final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
   bool _isAvailableId = false;
+  bool _isNotDuplicatedId = false;
   bool _isAvailablePassword = false;
   bool _isFormValid = false;
   String _selectedGender = '남성';
@@ -34,6 +35,7 @@ class _JoinPageState extends State<JoinPage> {
     _confirmPasswordController.addListener(_validatePassword);
     _phoneController.addListener(_validateForm);
     _birthdateController.addListener(_validateForm);
+    _idController.addListener(_validateEmail);
   }
 
   @override
@@ -49,13 +51,25 @@ class _JoinPageState extends State<JoinPage> {
 
   void _validateForm() {
     setState(() {
-      _isFormValid = _nameController.text.isNotEmpty &&
+      _isFormValid = _idController.text.isNotEmpty &&
+          _nameController.text.isNotEmpty &&
           _passwordController.text.isNotEmpty &&
           _confirmPasswordController.text.isNotEmpty &&
           _phoneController.text.isNotEmpty &&
           _birthdateController.text.isNotEmpty &&
           _isAvailablePassword &&
-          _isAvailableId;
+          _isAvailableId &&
+          _isNotDuplicatedId;
+    });
+  }
+
+  // 이메일 형식을 검증하는 함수
+  void _validateEmail() {
+    String pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
+    RegExp regex = RegExp(pattern);
+    setState(() {
+      _isAvailableId = regex.hasMatch(_idController.text); // 이메일 형식이 맞으면 true
+      _validateForm(); // 폼 전체 유효성 검증
     });
   }
 
@@ -83,9 +97,16 @@ class _JoinPageState extends State<JoinPage> {
     if (userId.trim().isEmpty) {
       return;
     }
+    if(!_isAvailableId){
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('이메일 형식대로 작성해주세요. \n유효한 이메일 형식 : example@example.com')),
+      );
+      return;
+    }
     final isAvailable = await _authService.checkDuplicate(userId);
     setState(() {
-      _isAvailableId = isAvailable;
+      _isNotDuplicatedId = isAvailable;
     });
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -97,15 +118,21 @@ class _JoinPageState extends State<JoinPage> {
 
   Future<void> _submitForm() async {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    if (!_isAvailablePassword) {
+    if (!_isAvailablePassword) { // 비번 일치 false
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('비밀번호를 일치시켜주세요.')),
+        const SnackBar(content: Text('비밀번호를 일치시켜주세요.')),
       );
       return;
     }
-    if (!_isAvailableId) {
+    if (!_isNotDuplicatedId) { // 아이디 중복체크 false
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('아이디 중복체크 또는 다른 아이디를 작성해주세요.')),
+        const SnackBar(content: Text('아이디 중복체크 또는 다른 아이디를 작성해주세요.')),
+      );
+      return;
+    }
+    if(!_isAvailableId){ // 이메일 형식 false
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('이메일 형식대로 작성해주세요. \n 유효한 이메일 형식 : example@example.com')),
       );
       return;
     }
@@ -177,7 +204,7 @@ class _JoinPageState extends State<JoinPage> {
             children: [
               _buildTextField('이름', '이름을 입력해 주세요.', controller: _nameController),
               SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-              _buildTextField('아이디', '아이디를 입력해 주세요.', controller: _idController),
+              _buildTextField('이메일', '이메일을 입력해 주세요.', controller: _idController, isEmail: true),
               SizedBox(height: MediaQuery.of(context).size.height * 0.02),
               _buildCheckDuplicateButton(),
               SizedBox(height: MediaQuery.of(context).size.height * 0.02),
@@ -213,7 +240,8 @@ class _JoinPageState extends State<JoinPage> {
               SizedBox(height: MediaQuery.of(context).size.height * 0.05),
               Center(
                 child: ElevatedButton(
-                  onPressed: _isFormValid ? _submitForm : null,
+                  //onPressed: _isFormValid ? _submitForm : null,
+                  onPressed: _submitForm,
                   child: Text('가입하기'),
                 ),
               ),
@@ -224,7 +252,7 @@ class _JoinPageState extends State<JoinPage> {
     );
   }
 
-  Widget _buildTextField(String label, String hint, {TextEditingController? controller, bool isPhoneNumber = false}) {
+  Widget _buildTextField(String label, String hint, {TextEditingController? controller, bool isPhoneNumber = false, bool isEmail = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -240,7 +268,11 @@ class _JoinPageState extends State<JoinPage> {
             hintStyle: TextStyle(color: Color(0xFFB1B1B1)),
             border: OutlineInputBorder(),
           ),
-          keyboardType: isPhoneNumber ? TextInputType.phone : TextInputType.text,
+          keyboardType: isPhoneNumber
+              ? TextInputType.phone
+              : isEmail
+                ? TextInputType.emailAddress
+                : TextInputType.text,
           inputFormatters: isPhoneNumber
               ? [
             PhoneFormatter(), // 전화번호 포맷터 적용

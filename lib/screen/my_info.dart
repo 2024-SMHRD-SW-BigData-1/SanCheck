@@ -1,8 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:sancheck/model/user_model.dart';
 import 'package:sancheck/screen/delete_id.dart';
+import 'package:sancheck/screen/login_page.dart';
 import 'package:sancheck/screen/login_success.dart';
+import 'package:sancheck/service/auth_service.dart';
 
-class MyInfo extends StatelessWidget {
+class MyInfo extends StatefulWidget {
+
+  final UserModel user;
+  final String formattedDate;
+
+  // 생성자를 통해 user와 formattedDate를 받음
+  MyInfo({required this.user, required this.formattedDate});
+
+
+  @override
+  State<MyInfo> createState() => _MyInfoState();
+}
+
+class _MyInfoState extends State<MyInfo> {
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +66,7 @@ class MyInfo extends StatelessWidget {
                   Text.rich(
                     TextSpan(
                       children: [
+                        // 레벨
                         TextSpan(
                           text: '등린이 ',
                           style: TextStyle(
@@ -50,8 +76,10 @@ class MyInfo extends StatelessWidget {
                             fontWeight: FontWeight.w400,
                           ),
                         ),
+                        
+                        // 이름 
                         TextSpan(
-                          text: '팜하니',
+                          text: widget.user.userName,
                           style: TextStyle(
                             color: Colors.black,
                             fontSize: 20,
@@ -89,25 +117,25 @@ class MyInfo extends StatelessWidget {
                   InfoRow(
                     icon: "https://via.placeholder.com/35x35",
                     label: '생년월일',
-                    value: '2004년 08월 22일',
+                    value: widget.formattedDate,
                   ),
                   SizedBox(height: 20),
                   InfoRow(
                     icon: "https://via.placeholder.com/45x45",
                     label: '전화번호',
-                    value: '010-1111-5555',
+                    value: widget.user.userPhone,
                   ),
                   SizedBox(height: 20),
                   InfoRow(
                     icon: "https://via.placeholder.com/45x45",
                     label: '이메일',
-                    value: 'qwer@googole.com',
+                    value: widget.user.userId,
                   ),
                   SizedBox(height: 20),
                   InfoRow(
                     icon: "https://via.placeholder.com/30x30",
                     label: '성별',
-                    value: '여',
+                    value: widget.user.userGender == 'M' ?'남성':'여성',
                   ),
                 ],
               ),
@@ -227,28 +255,30 @@ class InfoRow extends StatelessWidget {
           child: Image.network(icon),
         ),
         SizedBox(width: 16),
-        Text.rich(
-          TextSpan(
-            children: [
-              TextSpan(
-                text: '$label  ',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 16,
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.w700,
+        Expanded(
+          child: Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: '$label  ',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 16,
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-              TextSpan(
-                text: value,
-                style: TextStyle(
-                  color: Color(0xFFB3B3B3),
-                  fontSize: 16,
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.w700,
+                TextSpan(
+                  text: value,
+                  style: TextStyle(
+                    color: Color(0xFFB3B3B3),
+                    fontSize: 16,
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ],
