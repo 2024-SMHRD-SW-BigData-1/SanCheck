@@ -1,9 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:sancheck/provider/mountain_provider.dart';
-import 'package:sancheck/screen/home_mt_detail.dart';
 import 'gpx_navigation.dart'; // GpxNavigation 클래스를 포함한 파일을 import
+import 'home_mt_detail.dart'; // Import the detail page
+import 'level_mt.dart'; // 난이도별 코스 상세 페이지 import
 
 Dio dio = Dio();
 
@@ -16,121 +15,152 @@ class _HomeState extends State<Home> {
   final TextEditingController _searchController = TextEditingController();
 
   @override
-  void dispose() {
-    // TODO: implement dispose
-    super.dispose();
-    // Provider 초기화
-    _searchController.dispose(); // TextController를 dispose
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final mountainProvider = Provider.of<MountainProvider>(context); // Provider 접근
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: Color(0xFFF5F5F5), // 배경색 설정
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // 검색 텍스트 필드
-              Container(
-                margin: EdgeInsets.symmetric(vertical: 10),
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20), // 코너 반경을 20으로 설정
-                  border: Border.all(color: Colors.black), // 테두리를 검정색으로 설정
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 4,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Image.network(
-                      'https://img.icons8.com/pastel-glyph/64/location--v3.png',
-                      width: 24,
-                      height: 24,
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          hintText: '산 검색하기',
-                          border: InputBorder.none,
+      backgroundColor: Color(0xFFF5F5F5),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.all(screenWidth * 0.04),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  margin: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
+                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.black),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 4,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Image.network(
+                        'https://img.icons8.com/pastel-glyph/64/location--v3.png',
+                        width: screenWidth * 0.06,
+                        height: screenHeight * 0.03,
+                      ),
+                      SizedBox(width: screenWidth * 0.04),
+                      Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            hintText: '산 검색하기',
+                            border: InputBorder.none,
+                          ),
                         ),
                       ),
-                    ),
-                    IconButton(
-                      icon: Image.network(
-                        'https://img.icons8.com/metro/52/search.png',
-                        width: 24,
-                        height: 24,
+                      IconButton(
+                        icon: Image.network(
+                          'https://img.icons8.com/metro/52/search.png',
+                          width: screenWidth * 0.06,
+                          height: screenHeight * 0.03,
+                        ),
+                        onPressed: () => {_search()},
                       ),
-                      onPressed: () async {
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                        await mountainProvider.searchMountain(_searchController.text); // 검색 실행
-                        if(mountainProvider.mountain == null){
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('검색된 산이 없습니다.'), backgroundColor: Colors.redAccent),
-                          );
-                        }
-                      }, // Call the search method
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              SizedBox(height: 20),
-              // 지도 표시 및 현재 위치 버튼
-              Container(
-                height: 300, // 적당한 높이 설정 (필요에 따라 조정 가능)
-                child: GpxNavigation(), // GPX 네비게이션 지도 표시
-              ),
-              SizedBox(height: 20),
-
-              // 첫 번째 ExpandableButtonList에 매개변수 전달
-              ExpandableButtonList(
-                title: '인기있는 산',
-                items: ["북한산", "남산"],
-                buttonColor: Colors.blue,
-                iconUrl: 'https://img.icons8.com/3d-fluency/94/fire-element--v2.png', // 아이콘 추가
-              ),
-              SizedBox(height: 20),
-              // 두 번째 ExpandableButtonList에 다른 매개변수 전달
-              ExpandableButtonList(
-                title: "관심있는 산",
-                items: ["북한산", "남산", "지리산"],
-                buttonColor: Colors.green,
-                iconUrl: 'https://img.icons8.com/emoji/96/sparkling-heart.png', // 아이콘 추가
-              ),
-            ],
+                SizedBox(height: screenHeight * 0.03),
+                Container(
+                  height: screenHeight * 0.4,
+                  child: GpxNavigation(),
+                ),
+                SizedBox(height: screenHeight * 0.02),
+                ExpandableButtonList(
+                  title: '인기있는 산',
+                  items: ["북한산", "남산"],
+                  buttonColor: Colors.blue,
+                  iconUrl:
+                  'https://img.icons8.com/3d-fluency/94/fire-element--v2.png',
+                  isNavigable: true,
+                  showStarIcon: true, // 별 아이콘 표시 설정
+                  navigateToPage: (selectedItem) => HomeMtDetail(
+                    mountainName: selectedItem,
+                  ),
+                ),
+                SizedBox(height: screenHeight * 0.01),
+                ExpandableButtonList(
+                  title: "관심있는 산",
+                  items: ["북한산", "남산", "지리산"],
+                  buttonColor: Colors.green,
+                  iconUrl:
+                  'https://img.icons8.com/emoji/96/sparkling-heart.png',
+                  isNavigable: true,
+                  showStarIcon: true,
+                  navigateToPage: (selectedItem) => HomeMtDetail(
+                    mountainName: selectedItem,
+                  ),
+                ),
+                SizedBox(height: screenHeight * 0.01),
+                ExpandableButtonList(
+                  title: "난이도별 코스",
+                  items: ["쉬움", "보통", "어려움"],
+                  buttonColor: Colors.orange,
+                  iconUrl: 'https://img.icons8.com/color/96/sparkling.png',
+                  isNavigable: true,
+                  showStarIcon: false, // 별 아이콘 숨기기
+                  navigateToPage: (selectedItem) =>
+                      LevelMt(level: selectedItem),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
+  void _search() async {
+    String queryText = _searchController.text;
+
+    if (queryText.isEmpty) {
+      return;
+    }
+
+    try {
+      String url = "http://192.168.219.200:8000/mountain/searchMountain";
+      Response res = await dio.get(url, queryParameters: {
+        'queryText': queryText,
+      });
+      print('Request URL: ${res.realUri}');
+      print('Status Code: ${res.statusCode}');
+      print('Response Data: ${res.data}');
+    } catch (e) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('검색 실패'), backgroundColor: Colors.redAccent));
+    }
+  }
 }
 
 class ExpandableButtonList extends StatefulWidget {
   final String title;
   final List<String> items;
   final Color buttonColor;
-  final String? iconUrl; // 아이콘 URL을 추가
+  final String? iconUrl;
+  final bool isNavigable;
+  final bool showStarIcon; // 별 아이콘 표시 여부 플래그 추가
+  final Widget Function(String)? navigateToPage;
 
-  // 생성자에 매개변수 추가
   ExpandableButtonList({
     required this.title,
     required this.items,
-    this.buttonColor = Colors.blue, // 기본 색상 지정 가능
-    this.iconUrl, // 아이콘 URL을 받음
+    this.buttonColor = Colors.blue,
+    this.iconUrl,
+    this.isNavigable = true,
+    this.showStarIcon = true, // 기본값으로 별 아이콘을 표시하도록 설정
+    this.navigateToPage,
   });
 
   @override
@@ -138,16 +168,15 @@ class ExpandableButtonList extends StatefulWidget {
 }
 
 class _ExpandableButtonListState extends State<ExpandableButtonList> {
-  // 리스트의 가시성을 관리하는 변수
   bool _isExpanded = false;
-
-  // 관심있는 산을 저장하는 Set
   Set<String> favoriteItems = {};
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: EdgeInsets.all(screenWidth * 0.04),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -163,16 +192,26 @@ class _ExpandableButtonListState extends State<ExpandableButtonList> {
               itemCount: widget.items.length,
               itemBuilder: (context, index) {
                 return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  padding: EdgeInsets.symmetric(vertical: screenWidth * 0.01),
                   child: _buildStyledButton(
                     widget.items[index],
                     onPressed: () {
-                      print("${widget.items[index]} 버튼이 눌렸습니다.");
-                      Navigator.push(context, MaterialPageRoute(builder: (_)=>HomeMtDetail(mountainName: 'name')));
+                      if (widget.isNavigable && widget.navigateToPage != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                widget.navigateToPage!(widget.items[index]),
+                          ),
+                        );
+                      }
                     },
-                    trailingIcon: favoriteItems.contains(widget.items[index])
-                        ? Icons.star // 채워진 별
-                        : Icons.star_border, // 빈 별
+                    trailingIcon: widget.showStarIcon &&
+                        favoriteItems.contains(widget.items[index])
+                        ? Icons.star
+                        : widget.showStarIcon
+                        ? Icons.star_border
+                        : null, // 별 아이콘 표시 여부 조건 추가
                     onTrailingIconPressed: () {
                       setState(() {
                         if (favoriteItems.contains(widget.items[index])) {
@@ -192,14 +231,20 @@ class _ExpandableButtonListState extends State<ExpandableButtonList> {
     );
   }
 
-  // 아이폰 건강 앱 스타일의 버튼 생성 함수
   Widget _buildStyledButton(String text,
-      {String? iconUrl, required VoidCallback onPressed, IconData? trailingIcon, VoidCallback? onTrailingIconPressed}) {
+      {String? iconUrl,
+        required VoidCallback onPressed,
+        IconData? trailingIcon,
+        VoidCallback? onTrailingIconPressed}) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return TextButton(
       onPressed: onPressed,
       style: ButtonStyle(
         backgroundColor: MaterialStateProperty.all(Colors.white),
-        padding: MaterialStateProperty.all(EdgeInsets.symmetric(vertical: 16, horizontal: 24)),
+        padding: MaterialStateProperty.all(
+            EdgeInsets.symmetric(
+                vertical: screenWidth * 0.04, horizontal: screenWidth * 0.06)),
         shape: MaterialStateProperty.all(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -209,9 +254,9 @@ class _ExpandableButtonListState extends State<ExpandableButtonList> {
         overlayColor: MaterialStateProperty.resolveWith<Color?>(
               (Set<MaterialState> states) {
             if (states.contains(MaterialState.pressed)) {
-              return Color(0x3F000000); // 눌렀을 때의 색상
+              return Color(0x3F000000);
             }
-            return null; // 기본 상태에서는 색상을 설정하지 않음
+            return null;
           },
         ),
       ),
@@ -221,13 +266,14 @@ class _ExpandableButtonListState extends State<ExpandableButtonList> {
           Row(
             children: [
               if (iconUrl != null) ...[
-                Image.network(iconUrl, width: 24, height: 24), // 아이콘 추가
-                SizedBox(width: 8),
+                Image.network(iconUrl,
+                    width: screenWidth * 0.06, height: screenWidth * 0.06),
+                SizedBox(width: screenWidth * 0.02),
               ],
               Text(
                 text,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: screenWidth * 0.04,
                   fontWeight: FontWeight.w600,
                   color: Colors.black,
                 ),

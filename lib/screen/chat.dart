@@ -1,6 +1,5 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-// import 'package:provider/provider.dart';  // 필요 시 Provider 사용
-import 'package:sancheck/service/api_service.dart';
 
 class ChatPage extends StatefulWidget {
   @override
@@ -10,73 +9,26 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _controller = TextEditingController();
   final List<Map<String, dynamic>> _messages = [];
-  bool _isLoading = false;
-  final ApiService _apiService = ApiService(); // ApiService 인스턴스 생성
 
-  @override
-  void dispose() {
-    super.dispose();
-    _controller.dispose();
-  }
-
-  // 메시지 전송 메서드
-  void _sendMessage() async {
+  void _sendMessage() {
     if (_controller.text.isNotEmpty) {
-      print(_controller.text);
       setState(() {
-        _isLoading = true; // 로딩 시작
-
         _messages.add({
           'text': _controller.text,
           'isAutoReply': false,
-          'color': Color(0xFF87B85C),
-          'textColor': Colors.white,
-          'role': 'user',
         });
         _controller.clear();
       });
 
-      try {
-        // ApiService를 사용해 메시지를 서버로 전송
-        final response = await _apiService.sendMessage(_messages);
-
-        if (response['success']) {
-          // 요청 성공 시 자동 응답 처리
-          _sendAutoReply(response['data']);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('답변을 생성하는 도중 오류가 발생했습니다.'),
-              backgroundColor: Colors.redAccent,
-            ),
-          );
-        }
-      } catch (e) {
-        print('Error occurred: $e');
-        ScaffoldMessenger.of(context).hideCurrentSnackBar(); // 현재 스낵바 숨기기
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('답변을 생성하는 도중 오류가 발생했습니다.'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-      } finally {
-        setState(() {
-          _isLoading = false; // 로딩 끝
-        });
-      }
+      Timer(Duration(seconds: 1), _sendAutoReply);
     }
   }
 
-  // 자동 응답 메시지 추가 메서드
-  void _sendAutoReply(String resText) {
+  void _sendAutoReply() {
     setState(() {
       _messages.add({
-        'text': resText,
+        'text': '답장: 여기 자동 응답 메시지가 나타납니다!',
         'isAutoReply': true,
-        'color': Colors.white,
-        'textColor': Colors.black,
-        'role': 'assistant',
       });
     });
   }
@@ -94,102 +46,110 @@ class _ChatPageState extends State<ChatPage> {
         children: [
           Expanded(
             child: SingleChildScrollView(
+              reverse: true,
               padding: EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildInitialMessage(),
                   SizedBox(height: 16),
-                  // 메시지 리스트 출력
                   ..._messages.map((message) => _buildMessage(
                     message['text'],
                     message['isAutoReply'],
-                    message['color'],
-                    message['textColor'],
                   )),
-                  if (_isLoading)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: CircularProgressIndicator(),
-                    ),
                 ],
               ),
             ),
           ),
-          _buildInputArea(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInputArea() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            offset: Offset(0, -2),
-            blurRadius: 5,
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _controller,
-              enabled: !_isLoading,
-              decoration: InputDecoration(
-                hintText: _isLoading ? '답변을 생성중입니다...' : '메시지를 입력하세요...',
-                hintStyle: TextStyle(color: Colors.grey),
-                border: InputBorder.none,
-              ),
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 14,
-                fontFamily: 'Roboto',
-                fontWeight: FontWeight.w400,
-              ),
-              onSubmitted: (_) => _sendMessage(),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  offset: Offset(0, -2),
+                  blurRadius: 5,
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    decoration: InputDecoration(
+                      hintText: '메시지를 입력하세요...',
+                      hintStyle: TextStyle(color: Colors.grey),
+                      border: InputBorder.none,
+                    ),
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
+                      fontFamily: 'Roboto',
+                      fontWeight: FontWeight.w400,
+                    ),
+                    onSubmitted: (_) => _sendMessage(),
+                  ),
+                ),
+                SizedBox(width: 8),
+                IconButton(
+                  icon: Icon(Icons.send, color: Color(0xFF87B85C)),
+                  onPressed: _sendMessage,
+                ),
+              ],
             ),
           ),
-          SizedBox(width: 8),
-          IconButton(
-            icon: Icon(Icons.send, color: Color(0xFF87B85C)),
-            onPressed: _sendMessage,
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildMessage(String text, bool isAutoReply, Color bgColor, Color textColor) {
-    return Align(
-      alignment: isAutoReply ? Alignment.centerLeft : Alignment.centerRight,
-      child: Container(
-        padding: EdgeInsets.all(16),
-        margin: EdgeInsets.symmetric(vertical: 4),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.75,
-        ),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Color(0xFFD0D0D0)),
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-            color: textColor,
-            fontSize: 14,
-            fontFamily: 'Roboto',
-            fontWeight: FontWeight.w400,
-            height: 1.2,
-            letterSpacing: 0.25,
+  Widget _buildMessage(String text, bool isAutoReply) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment:
+        isAutoReply ? MainAxisAlignment.start : MainAxisAlignment.end,
+        children: [
+          if (isAutoReply) ...[
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Image.network(
+                'https://img.icons8.com/doodle/96/retro-robot.png',
+                width: 32,
+                height: 32,
+              ),
+            ),
+          ],
+          Flexible(
+            child: Container(
+              padding: EdgeInsets.all(12),
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.75,
+              ),
+              decoration: BoxDecoration(
+                color: isAutoReply ? Colors.grey[200] : Color(0xFF87B85C),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                  bottomLeft: Radius.circular(isAutoReply ? 0 : 16),
+                  bottomRight: Radius.circular(isAutoReply ? 16 : 0),
+                ),
+              ),
+              child: Text(
+                text,
+                style: TextStyle(
+                  color: isAutoReply ? Colors.black : Colors.white,
+                  fontSize: 14,
+                  fontFamily: 'Roboto',
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -200,22 +160,21 @@ class _ChatPageState extends State<ChatPage> {
       children: [
         Image.network(
           'https://img.icons8.com/doodle/96/retro-robot.png',
-          width: 24,
-          height: 24,
+          width: 32,
+          height: 32,
         ),
         SizedBox(width: 8),
         Align(
           alignment: Alignment.centerLeft,
           child: Container(
-            padding: EdgeInsets.all(16),
+            padding: EdgeInsets.all(12),
             margin: EdgeInsets.symmetric(vertical: 4),
             constraints: BoxConstraints(
               maxWidth: MediaQuery.of(context).size.width * 0.75,
             ),
             decoration: BoxDecoration(
               color: Color(0xFFEFEFEF),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Color(0xFFD0D0D0)),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Text(
               '무엇이든 물어보세요',
@@ -231,6 +190,57 @@ class _ChatPageState extends State<ChatPage> {
           ),
         ),
       ],
+    );
+  }
+
+  void _showImagePopup(BuildContext context, String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent, // 배경 투명 설정
+          insetPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 24), // 팝업 위치 조정
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20), // 팝업 전체 둥글게
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20), // 내부 테두리 둥글게 설정
+            child: Container(
+              color: Colors.white, // 배경색 설정
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)), // 이미지 둥글게
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green, // 버튼 색상 설정
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12), // 버튼 테두리 둥글게 설정
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: Text(
+                        '닫기',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
