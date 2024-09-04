@@ -32,7 +32,7 @@ class FindPw extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
@@ -49,12 +49,12 @@ class FindPw extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildTextField('아이디', '아이디를 입력해 주세요.', _idController),
-                  SizedBox(height: 20),
+                  _buildTextField('이메일', '이메일을 입력해 주세요.', _idController),
+                  const SizedBox(height: 20),
                   _buildTextField('이름', '이름을 입력해 주세요.', _nameController),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   _buildTextField('전화번호', '전화번호를 입력해 주세요.', _phoneController),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   Align(
                     alignment: Alignment.center,
                     child: SizedBox(
@@ -71,7 +71,7 @@ class FindPw extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: Text(
+                        child: const Text(
                           '비밀번호 찾기',
                           style: TextStyle(
                             color: Colors.white,
@@ -97,7 +97,7 @@ class FindPw extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             color: Color(0xFF1E1E1E),
             fontSize: 16,
             fontWeight: FontWeight.w400,
@@ -129,14 +129,30 @@ class FindPw extends StatelessWidget {
     );
   }
 
-  void handleFindPw(context) async {
+  Future<void> _handleFindPw(BuildContext context) async {
+
     String userId = _idController.text;
     String userName = _nameController.text;
     String userPhone = _phoneController.text;
 
+    // bool isAvailableId =  _validateEmail(userId);
+
+
     if (userId.isEmpty || userName.isEmpty || userPhone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('이메일, 이름, 전화번호를 모두 입력해 주세요.'), backgroundColor: Colors.redAccent),
+      );
       return;
     }
+
+    // if(!isAvailableId){
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(content: Text('이메일 형식대로 작성해주세요. \n유효한 이메일 형식 : example@example.com'), backgroundColor: Colors.redAccent),
+    //   );
+    //   return;
+    // }
+
+
 
     try {
       // 서버 통신
@@ -163,14 +179,14 @@ class FindPw extends StatelessWidget {
       } else {
         ScaffoldMessenger.of(context).hideCurrentSnackBar(); // 현재 스낵바 숨기기
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('비밀번호 찾기 실패'), backgroundColor: Colors.redAccent),
+          const SnackBar(content: Text('비밀번호 찾기 실패'), backgroundColor: Colors.redAccent),
         );
       }
     } catch (e) {
       print('Error occurred: $e');
       ScaffoldMessenger.of(context).hideCurrentSnackBar(); // 현재 스낵바 숨기기
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('비밀번호 찾기 실패'), backgroundColor: Colors.redAccent),
+        const SnackBar(content: Text('비밀번호 찾기 실패'), backgroundColor: Colors.redAccent),
       );
     }
   }

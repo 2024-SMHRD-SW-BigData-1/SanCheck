@@ -1,11 +1,36 @@
 // my_info.dart
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:sancheck/model/user_model.dart';
 import 'package:sancheck/screen/delete_id.dart';
+import 'package:sancheck/screen/login_page.dart';
 import 'package:sancheck/screen/login_success.dart';
-import 'package:sancheck/screen/user_profile.dart'; // UserProfile 위젯을 import
+import 'package:sancheck/service/auth_service.dart';
 
-class MyInfo extends StatelessWidget {
+class MyInfo extends StatefulWidget {
+
+  final UserModel user;
+  final String formattedDate;
+
+  // 생성자를 통해 user와 formattedDate를 받음
+  MyInfo({required this.user, required this.formattedDate});
+
+
+  @override
+  State<MyInfo> createState() => _MyInfoState();
+}
+
+class _MyInfoState extends State<MyInfo> {
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     void _onItemTapped(int index) {
@@ -29,18 +54,96 @@ class MyInfo extends StatelessWidget {
       ),
       backgroundColor: Color(0xFFF5F5F5),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: UserProfile(
-                  userLevel: 1,
-                  nickname: '팜하니',
-                  iconUrl: 'https://img.icons8.com/color/96/babys-room.png',
-                ),
+        padding: const EdgeInsets.all(16.0), // Home 페이지와 동일하게 패딩 설정
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Profile Section
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 27,
+                    backgroundColor: Color(0xFFCBCBCB),
+                    backgroundImage: NetworkImage("https://via.placeholder.com/54"),
+                  ),
+                  SizedBox(width: 20),
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        // 레벨
+                        TextSpan(
+                          text: '등린이 ',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 20,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        
+                        // 이름 
+                        TextSpan(
+                          text: widget.user.userName,
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 20,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 40),
+
+            // Info Section
+            Container(
+              width: 340,
+              padding: EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Color(0xFFD9D9D9)), // 테두리 색상 Home 페이지와 동일하게 설정
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x3F000000),
+                    blurRadius: 4,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  InfoRow(
+                    icon: "https://via.placeholder.com/35x35",
+                    label: '생년월일',
+                    value: widget.formattedDate,
+                  ),
+                  SizedBox(height: 20),
+                  InfoRow(
+                    icon: "https://via.placeholder.com/45x45",
+                    label: '전화번호',
+                    value: widget.user.userPhone,
+                  ),
+                  SizedBox(height: 20),
+                  InfoRow(
+                    icon: "https://via.placeholder.com/45x45",
+                    label: '이메일',
+                    value: widget.user.userId,
+                  ),
+                  SizedBox(height: 20),
+                  InfoRow(
+                    icon: "https://via.placeholder.com/30x30",
+                    label: '성별',
+                    value: widget.user.userGender == 'M' ?'남성':'여성',
+                  ),
+                ],
               ),
               SizedBox(height: screenHeight * 0.05),
 

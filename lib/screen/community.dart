@@ -10,7 +10,7 @@ class Community extends StatefulWidget {
 class _CommunityState extends State<Community> {
   List<Map<String, dynamic>> _posts = []; // 게시물 리스트
   List<TextEditingController> _commentControllers = []; // 각 게시물에 대한 댓글 입력 컨트롤러 리스트
-  String _selectedCategory = '실시간 게시물'; // 선택된 카테고리 상태
+  int _selectedCategory = 0; // 선택된 카테고리 상태
 
   void _showPostDialog(BuildContext context) async {
     final newPost = await showDialog<Map<String, dynamic>>(
@@ -21,7 +21,7 @@ class _CommunityState extends State<Community> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        child: CommunityPost(),
+        child: CommunityPost(category: _selectedCategory,),
       ),
     );
 
@@ -168,9 +168,9 @@ class _CommunityState extends State<Community> {
                     // 카테고리 선택 버튼
                     Row(
                       children: [
-                        _buildCategoryButton('실시간 게시물'),
+                        _buildCategoryButton(0),
                         SizedBox(width: 10),
-                        _buildCategoryButton('등산기록'),
+                        _buildCategoryButton(1),
                       ],
                     ),
                     GestureDetector(
@@ -379,7 +379,7 @@ class _CommunityState extends State<Community> {
   }
 
   // 카테고리 버튼 생성 함수
-  Widget _buildCategoryButton(String category) {
+  Widget _buildCategoryButton(int category) {
     return ElevatedButton(
       onPressed: () {
         setState(() {
@@ -395,7 +395,7 @@ class _CommunityState extends State<Community> {
         side: BorderSide(color: Colors.green, width: 1),
       ),
       child: Text(
-        category,
+        category==0?'실시간 게시물':'등산기록',
         style: TextStyle(
           color: _selectedCategory == category ? Colors.white : Colors.green,
           fontWeight: FontWeight.w600,
