@@ -47,6 +47,11 @@ class _MyPageState extends State<MyPage> {
 
   @override
   Widget build(BuildContext context) {
+    if(_user==null){
+      return CircularProgressIndicator();
+    }
+
+
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
@@ -77,7 +82,7 @@ class _MyPageState extends State<MyPage> {
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: UserProfile(
         userLevel: 1, // 원하는 레벨을 설정하세요
-        nickname: '팜하니',
+        nickname: _user!.userName,
         iconUrl: 'https://img.icons8.com/color/96/babys-room.png',
       ),
     );

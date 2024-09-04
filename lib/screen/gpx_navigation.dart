@@ -192,6 +192,7 @@ class GpxNavigationState extends State<GpxNavigation> {
                   southWest: NLatLng(31.43, 122.37),
                   northEast: NLatLng(44.35, 132.0),
                 ),
+                locale: Locale('kr'),
               ),
               onMapReady: (controller) {
                 print("홈페이지 맵 로딩 완료");

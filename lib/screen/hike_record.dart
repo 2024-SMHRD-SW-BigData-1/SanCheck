@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class HikeRecodeModal extends StatelessWidget {
+class HikeRecordModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -55,7 +55,7 @@ class HikeRecodeModal extends StatelessWidget {
                               ),
                             ),
                             TextSpan(
-                              text: '청암교 -> 충장사 -> 원효사',
+                              text: '청암교 ➡ 충장사 ➡ 원효사',
                               style: TextStyle(
                                 color: Color(0xFF1E1E1E),
                                 fontSize: 16,

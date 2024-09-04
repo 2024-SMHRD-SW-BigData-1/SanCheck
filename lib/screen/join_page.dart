@@ -1,8 +1,12 @@
+import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:sancheck/screen/phone_formatter.dart';
+import 'package:intl/intl.dart';
 import 'package:sancheck/service/auth_service.dart';
+
+Dio dio = Dio();
 
 class JoinPage extends StatefulWidget {
   @override
@@ -10,22 +14,27 @@ class JoinPage extends StatefulWidget {
 }
 
 class _JoinPageState extends State<JoinPage> {
-  final AuthService _authService = AuthService(); // 서비스 인스턴스 생성
+  final AuthService _authService = AuthService(); // AuthService instance
 
   bool _isObscuredPassword = true;
   bool _isObscuredConfirmPassword = true;
+
+  // Input field controllers
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _birthdateController = TextEditingController();
+
   final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
+
   bool _isAvailableId = false;
-  bool _isNotDuplicatedId = false;
   bool _isAvailablePassword = false;
+  bool _isNotDuplicatedId = false;
   bool _isFormValid = false;
-  String _selectedGender = '남성';
+
+  String _selectedGender = '남성'; // Initial gender selection
 
   @override
   void initState() {
@@ -63,13 +72,12 @@ class _JoinPageState extends State<JoinPage> {
     });
   }
 
-  // 이메일 형식을 검증하는 함수
   void _validateEmail() {
     String pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
     RegExp regex = RegExp(pattern);
     setState(() {
-      _isAvailableId = regex.hasMatch(_idController.text); // 이메일 형식이 맞으면 true
-      _validateForm(); // 폼 전체 유효성 검증
+      _isAvailableId = regex.hasMatch(_idController.text);
+      _validateForm();
     });
   }
 
@@ -97,7 +105,7 @@ class _JoinPageState extends State<JoinPage> {
     if (userId.trim().isEmpty) {
       return;
     }
-    if(!_isAvailableId){
+    if (!_isAvailableId) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('이메일 형식대로 작성해주세요. \n유효한 이메일 형식 : example@example.com')),
@@ -118,19 +126,19 @@ class _JoinPageState extends State<JoinPage> {
 
   Future<void> _submitForm() async {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    if (!_isAvailablePassword) { // 비번 일치 false
+    if (!_isAvailablePassword) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('비밀번호를 일치시켜주세요.')),
       );
       return;
     }
-    if (!_isNotDuplicatedId) { // 아이디 중복체크 false
+    if (!_isNotDuplicatedId) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('아이디 중복체크 또는 다른 아이디를 작성해주세요.')),
       );
       return;
     }
-    if(!_isAvailableId){ // 이메일 형식 false
+    if (!_isAvailableId) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('이메일 형식대로 작성해주세요. \n 유효한 이메일 형식 : example@example.com')),
       );
@@ -173,10 +181,16 @@ class _JoinPageState extends State<JoinPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 18, 32, 47),
+      backgroundColor: Color(0xFFF5F5F5),
       appBar: AppBar(
-        title: Text('산책 회원가입'),
-        backgroundColor: Color(0xFFF7F6E2),
+        title: Text(
+          '산책 회원가입',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        backgroundColor: Color(0xFFF5F5F5),
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.black),
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -195,56 +209,30 @@ class _JoinPageState extends State<JoinPage> {
         padding: const EdgeInsets.all(24.0),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 4)],
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: Offset(0, 5))],
         ),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildTextField('이름', '이름을 입력해 주세요.', controller: _nameController),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+              SizedBox(height: 16),
               _buildTextField('이메일', '이메일을 입력해 주세요.', controller: _idController, isEmail: true),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+              SizedBox(height: 16),
               _buildCheckDuplicateButton(),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+              SizedBox(height: 16),
               _buildPasswordField('비밀번호', '비밀번호를 입력해 주세요.', true, controller: _passwordController),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+              SizedBox(height: 16),
               _buildPasswordField('비밀번호 확인', '비밀번호를 다시 입력해주세요', false, controller: _confirmPasswordController),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+              SizedBox(height: 16),
               _buildTextField('전화번호', '전화번호를 입력해 주세요.', controller: _phoneController, isPhoneNumber: true),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-              Text(
-                '생년월일',
-                style: TextStyle(color: Color(0xFF1A1A1A), fontWeight: FontWeight.bold),
-              ),
-              GestureDetector(
-                onTap: () => _selectDate(context),
-                child: AbsorbPointer(
-                  child: TextFormField(
-                    controller: _birthdateController,
-                    decoration: InputDecoration(
-                      hintText: '생년월일을 선택해 주세요.',
-                      hintStyle: TextStyle(color: Color(0xFFB1B1B1)),
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-              Text(
-                '성별',
-                style: TextStyle(color: Color(0xFF1A1A1A), fontWeight: FontWeight.bold),
-              ),
-              _buildGenderRadioButtons(),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-              Center(
-                child: ElevatedButton(
-                  //onPressed: _isFormValid ? _submitForm : null,
-                  onPressed: _submitForm,
-                  child: Text('가입하기'),
-                ),
-              ),
+              SizedBox(height: 16),
+              _buildBirthdateField('생년월일을 입력하세요', _birthdateController),
+              SizedBox(height: 16),
+              _buildGenderField(),
+              SizedBox(height: 20),
+              _buildSubmitButton(),
             ],
           ),
         ),
@@ -252,50 +240,72 @@ class _JoinPageState extends State<JoinPage> {
     );
   }
 
-  Widget _buildTextField(String label, String hint, {TextEditingController? controller, bool isPhoneNumber = false, bool isEmail = false}) {
+  Widget _buildBirthdateField(String hint, TextEditingController? controller) {
+    return TextField(
+      controller: controller,
+      readOnly: true,
+      onTap: () => _selectDate(context),
+      decoration: InputDecoration(
+        hintText: hint,
+        filled: true,
+        fillColor: Color(0xFFF5F5F5),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      ),
+    );
+  }
+
+  Widget _buildGenderField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          label,
-          style: TextStyle(color: Color(0xFF1A1A1A), fontWeight: FontWeight.bold),
+          '성별',
+          style: TextStyle(color: Color(0xFF1E1E1E), fontSize: 16, fontWeight: FontWeight.w400),
         ),
         SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: TextStyle(color: Color(0xFFB1B1B1)),
-            border: OutlineInputBorder(),
-          ),
-          keyboardType: isPhoneNumber
-              ? TextInputType.phone
-              : isEmail
-                ? TextInputType.emailAddress
-                : TextInputType.text,
-          inputFormatters: isPhoneNumber
-              ? [
-            PhoneFormatter(), // 전화번호 포맷터 적용
-            LengthLimitingTextInputFormatter(13), // 하이픈 포함 최대 길이
-          ]
-              : null,
+        Row(
+          children: [
+            Expanded(
+              child: RadioListTile<String>(
+                title: const Text('남성'),
+                value: '남성',
+                groupValue: _selectedGender,
+                onChanged: (String? value) {
+                  setState(() {
+                    _selectedGender = value!;
+                  });
+                },
+              ),
+            ),
+            Expanded(
+              child: RadioListTile<String>(
+                title: const Text('여성'),
+                value: '여성',
+                groupValue: _selectedGender,
+                onChanged: (String? value) {
+                  setState(() {
+                    _selectedGender = value!;
+                  });
+                },
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
 
-  // 비밀번호 입력 필드 위젯
-  Widget _buildPasswordField(String label, String hint, bool isPassword,{TextEditingController? controller}) {
+  Widget _buildPasswordField(String label, String hint, bool isPassword, {TextEditingController? controller}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: TextStyle(
-            color: Color(0xFF1E1E1E),
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
-          ),
+          style: TextStyle(color: Color(0xFF1E1E1E), fontSize: 16, fontWeight: FontWeight.w400),
         ),
         SizedBox(height: 8),
         TextField(
@@ -306,13 +316,15 @@ class _JoinPageState extends State<JoinPage> {
             filled: true,
             fillColor: Color(0xFFF5F5F5),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
             contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             suffixIcon: IconButton(
               icon: Icon(
-                isPassword ? (_isObscuredPassword ? Icons.visibility_off : Icons.visibility) : (_isObscuredConfirmPassword ? Icons.visibility_off : Icons.visibility),
+                isPassword
+                    ? (_isObscuredPassword ? Icons.visibility_off : Icons.visibility)
+                    : (_isObscuredConfirmPassword ? Icons.visibility_off : Icons.visibility),
                 color: Color(0xFF1E1E1E),
               ),
               onPressed: () {
@@ -331,46 +343,83 @@ class _JoinPageState extends State<JoinPage> {
     );
   }
 
-  Widget _buildCheckDuplicateButton() {
-    return ElevatedButton(
-      onPressed: _checkDuplicate,
-      child: Text('아이디 중복 확인'),
+  Widget _buildTextField(String label, String hint, {TextEditingController? controller, bool isPhoneNumber = false, bool isEmail = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(color: Color(0xFF1E1E1E), fontSize: 16, fontWeight: FontWeight.w400),
+        ),
+        SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            hintText: hint,
+            filled: true,
+            fillColor: Color(0xFFF5F5F5),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+          keyboardType: isPhoneNumber
+              ? TextInputType.phone
+              : isEmail
+              ? TextInputType.emailAddress
+              : TextInputType.text,
+          inputFormatters: isPhoneNumber
+              ? [
+            PhoneFormatter(),
+            LengthLimitingTextInputFormatter(13),
+          ]
+              : null,
+        ),
+      ],
     );
   }
 
-  Widget _buildGenderRadioButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        Row(
-          children: [
-            Radio<String>(
-              value: '남성',
-              groupValue: _selectedGender,
-              onChanged: (value) {
-                setState(() {
-                  _selectedGender = value!;
-                });
-              },
+  Widget _buildCheckDuplicateButton() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 16.0),
+      child: Align(
+        alignment: Alignment.center,
+        child: ElevatedButton(
+          onPressed: _checkDuplicate,
+          child: Text('아이디 중복 확인'),
+          style: ElevatedButton.styleFrom(
+            foregroundColor: Colors.white,
+            backgroundColor: Colors.green,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
             ),
-            Text('남성'),
-          ],
+          ),
         ),
-        Row(
-          children: [
-            Radio<String>(
-              value: '여성',
-              groupValue: _selectedGender,
-              onChanged: (value) {
-                setState(() {
-                  _selectedGender = value!;
-                });
-              },
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 20.0),
+      child: Align(
+        alignment: Alignment.center,
+        child: SizedBox(
+          width: 300,
+          child: ElevatedButton(
+            onPressed: _submitForm,
+            child: Text('제출'),
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: Colors.green,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
-            Text('여성'),
-          ],
+          ),
         ),
-      ],
+      ),
     );
   }
 }
