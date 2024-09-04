@@ -20,7 +20,6 @@ class MyPage extends StatefulWidget {
 
 class _MyPageState extends State<MyPage> {
   // flutter_secure_storage를 사용하여 데이터를 저장하고 삭제할 수 있도록 초기화
-
   final AuthService _authService = AuthService(); // AuthService 인스턴스 생성
   UserModel? _user;
   late String _formattedDate;
@@ -113,9 +112,7 @@ class _MyPageState extends State<MyPage> {
           // 버튼 클릭 시 실행할 기능
           switch (title) {
             case '내 정보':
-
               Navigator.push(context, MaterialPageRoute(builder: (_) => MyInfo(user: _user!, formattedDate: _formattedDate)));
-
               break;
             case '등산 기록':
               Navigator.push(
@@ -178,14 +175,17 @@ class _MyPageState extends State<MyPage> {
 
   // 로그아웃 처리 함수
   void handleLogout() async {
-    // 로컬 저장소에서 값 삭제
-    await storage.delete(key: 'user');
+    try {
+      await _authService.logout(); // AuthService를 사용하여 로그아웃 처리
 
-    // 로그아웃 클릭 시 login_page.dart로 이동
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => LoginPage()), // 이동할 페이지
-          (Route<dynamic> route) => false, // 모든 이전 화면을 제거
-    );
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => LoginPage()), // 이동할 페이지
+            (Route<dynamic> route) => false, // 모든 이전 화면을 제거
+      );
+    } catch (e) {
+      print('Logout failed: $e');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('로그아웃 실패'), backgroundColor: Colors.redAccent));
+    }
   }
 }

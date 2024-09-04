@@ -122,4 +122,3 @@ class MyMedal extends StatelessWidget {
     );
   }
 }
-
