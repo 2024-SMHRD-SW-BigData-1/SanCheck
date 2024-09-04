@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sancheck/screen/login_success.dart';
 import 'hike.dart'; // Hike 클래스를 import
 
 class HomeMtDetail extends StatefulWidget {
@@ -214,11 +215,12 @@ class _HomeMtDetailState extends State<HomeMtDetail> {
                 padding: EdgeInsets.only(left: 10),
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(
+                    Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => Hike(),
+                        builder: (context) => LoginSuccess(selectedIndex: 0),
                       ),
+                          (Route<dynamic> route) => false, // 모든 이전 화면을 제거
                     );
                   },
                   style: ElevatedButton.styleFrom(
