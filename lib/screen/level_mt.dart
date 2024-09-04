@@ -1,25 +1,24 @@
 import 'package:flutter/material.dart';
 import 'hike.dart'; // Hike 클래스를 import
 
-class HomeMtDetail extends StatefulWidget {
-  final String mountainName;
+class LevelMt extends StatefulWidget {
+  final String level;
 
-  HomeMtDetail({required this.mountainName});
+  LevelMt({required this.level});
 
   @override
-  _HomeMtDetailState createState() => _HomeMtDetailState();
+  _LevelMtState createState() => _LevelMtState();
 }
 
-class _HomeMtDetailState extends State<HomeMtDetail> {
-  Set<String> favoriteItems = {};
+class _LevelMtState extends State<LevelMt> {
   List<bool> _isOpenList = [];
 
   final List<Map<String, String>> courseDetails = [
-    {'difficulty': '쉬움', 'time': '1시간', 'distance': '2.5km'},
-    {'difficulty': '보통', 'time': '1시간 30분', 'distance': '3.0km'},
-    {'difficulty': '어려움', 'time': '2시간', 'distance': '4.5km'},
-    {'difficulty': '쉬움', 'time': '45분', 'distance': '1.5km'},
-    {'difficulty': '보통', 'time': '2시간 30분', 'distance': '5.0km'},
+    {'mountain': '북한산', 'difficulty': '쉬움', 'time': '1시간', 'distance': '2.5km'},
+    {'mountain': '남산', 'difficulty': '보통', 'time': '1시간 30분', 'distance': '3.0km'},
+    {'mountain': '지리산', 'difficulty': '어려움', 'time': '2시간', 'distance': '4.5km'},
+    {'mountain': '설악산', 'difficulty': '쉬움', 'time': '45분', 'distance': '1.5km'},
+    {'mountain': '한라산', 'difficulty': '보통', 'time': '2시간 30분', 'distance': '5.0km'},
   ];
 
   final List<List<String>> subCourses = [
@@ -38,15 +37,12 @@ class _HomeMtDetailState extends State<HomeMtDetail> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery
-        .of(context)
-        .size
-        .width;
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
       backgroundColor: Color(0xFFF5F5F5),
       appBar: AppBar(
-        title: Text('${widget.mountainName} 코스 리스트'),
+        title: Text('${widget.level} 코스 리스트'),
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
@@ -61,21 +57,6 @@ class _HomeMtDetailState extends State<HomeMtDetail> {
         padding: EdgeInsets.all(screenWidth * 0.04),
         child: Column(
           children: [
-            _buildStyledButton(
-              widget.mountainName,
-              trailingIcon: favoriteItems.contains(widget.mountainName)
-                  ? Icons.star
-                  : Icons.star_border,
-              onTrailingIconPressed: () {
-                setState(() {
-                  if (favoriteItems.contains(widget.mountainName)) {
-                    favoriteItems.remove(widget.mountainName);
-                  } else {
-                    favoriteItems.add(widget.mountainName);
-                  }
-                });
-              },
-            ),
             SizedBox(height: 20),
             Expanded(
               child: ListView.separated(
@@ -84,7 +65,20 @@ class _HomeMtDetailState extends State<HomeMtDetail> {
                 separatorBuilder: (context, index) => SizedBox(height: 16),
                 itemBuilder: (context, index) {
                   return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // 산 이름 텍스트 추가
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          '📍${courseDetails[index]['mountain']}',
+                          style: TextStyle(
+                            fontSize: screenWidth * 0.045,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
                       _buildStyledButton(
                         '코스 ${index + 1} 상세 보기',
                         trailingIcon: _isOpenList[index]
@@ -100,8 +94,9 @@ class _HomeMtDetailState extends State<HomeMtDetail> {
                       ),
                       AnimatedContainer(
                         duration: Duration(milliseconds: 300),
-                        height: _isOpenList[index] ? subCourses[index].length *
-                            120.0 : 0,
+                        height: _isOpenList[index]
+                            ? subCourses[index].length * 120.0
+                            : 0,
                         child: _isOpenList[index]
                             ? ListView.builder(
                           physics: NeverScrollableScrollPhysics(),
@@ -131,10 +126,7 @@ class _HomeMtDetailState extends State<HomeMtDetail> {
         VoidCallback? onTrailingIconPressed,
         VoidCallback? onPressed,
         bool hasRouteButton = false}) {
-    final screenWidth = MediaQuery
-        .of(context)
-        .size
-        .width;
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Container(
       width: screenWidth * 0.92,
@@ -184,8 +176,8 @@ class _HomeMtDetailState extends State<HomeMtDetail> {
                       children: [
                         Text(
                           '🚩 ${courseInfo['difficulty'] ?? ''}',
-                          style: TextStyle(fontSize: screenWidth * 0.04,
-                              color: Colors.black),
+                          style: TextStyle(
+                              fontSize: screenWidth * 0.04, color: Colors.black),
                         ),
                       ],
                     ),
@@ -194,14 +186,14 @@ class _HomeMtDetailState extends State<HomeMtDetail> {
                       children: [
                         Text(
                           '⏱ ${courseInfo['time'] ?? ''}',
-                          style: TextStyle(fontSize: screenWidth * 0.04,
-                              color: Colors.black),
+                          style: TextStyle(
+                              fontSize: screenWidth * 0.04, color: Colors.black),
                         ),
                         SizedBox(width: 10),
                         Text(
                           '🏃‍♂️ ${courseInfo['distance'] ?? ''}',
-                          style: TextStyle(fontSize: screenWidth * 0.04,
-                              color: Colors.black),
+                          style: TextStyle(
+                              fontSize: screenWidth * 0.04, color: Colors.black),
                         ),
                       ],
                     ),
@@ -237,54 +229,14 @@ class _HomeMtDetailState extends State<HomeMtDetail> {
                   ),
                 ),
               ),
-            if (trailingIcon != null)
-              IconButton(
-                icon: Icon(trailingIcon, color: Colors.black),
-                onPressed: onTrailingIconPressed,
-                constraints: BoxConstraints(),
-                padding: EdgeInsets.zero,
-              ),
           ],
         ),
       ),
     );
   }
 
-
-  Widget _buildCourseInfo(Map<String, String> courseInfo) {
-    return Row(
-      children: [
-        _buildInfoItem('🚩', courseInfo['difficulty'] ?? ''),
-        SizedBox(width: 10),
-        _buildInfoItem('⏱', courseInfo['time'] ?? ''),
-        SizedBox(width: 10),
-        _buildInfoItem('🏃‍♂️', courseInfo['distance'] ?? ''),
-      ],
-    );
-  }
-
-  Widget _buildInfoItem(String icon, String text) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          icon,
-          style: TextStyle(fontSize: 14, color: Colors.black),
-        ),
-        SizedBox(width: 5),
-        Text(
-          text,
-          style: TextStyle(fontSize: 14, color: Colors.black),
-        ),
-      ],
-    );
-  }
-
   Widget _buildSubCourseItem(String subCourseNumber) {
-    final screenWidth = MediaQuery
-        .of(context)
-        .size
-        .width;
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Container(
       margin: EdgeInsets.symmetric(vertical: 8),
@@ -304,9 +256,7 @@ class _HomeMtDetailState extends State<HomeMtDetail> {
       child: Row(
         children: [
           GestureDetector(
-            onTap: () =>
-                _showImagePopup(context,
-                    'https://via.placeholder.com/400'),
+            onTap: () => _showImagePopup(context, 'https://via.placeholder.com/400'),
             child: Container(
               width: 90,
               height: 120,
@@ -373,12 +323,11 @@ class _HomeMtDetailState extends State<HomeMtDetail> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(
-                    vertical: 10, horizontal: 16),
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green, // 초록색으로 변경
+                    backgroundColor: Colors.green,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -386,8 +335,7 @@ class _HomeMtDetailState extends State<HomeMtDetail> {
                   ),
                   child: Text(
                     '닫기',
-                    style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
