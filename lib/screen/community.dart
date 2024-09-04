@@ -10,16 +10,19 @@ class Community extends StatefulWidget {
 class _CommunityState extends State<Community> {
   List<Map<String, dynamic>> _posts = []; // 게시물 리스트
   List<TextEditingController> _commentControllers = []; // 각 게시물에 대한 댓글 입력 컨트롤러 리스트
-  String _selectedCategory = '실시간 게시물'; // 선택된 카테고리 상태
+  int _selectedCategory = 0; // 선택된 카테고리 상태
 
-  void _showPostBottomSheet(BuildContext context) async {
-    final newPost = await showModalBottomSheet<Map<String, dynamic>>(
+  void _showPostDialog(BuildContext context) async {
+    final newPost = await showDialog<Map<String, dynamic>>(
       context: context,
-      isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      barrierDismissible: false, // 바깥쪽 클릭 시 닫히지 않게
+      builder: (context) => Dialog(
+        backgroundColor: Colors.white, // 모달창 배경색을 하얀색으로 설정
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: CommunityPost(category: _selectedCategory,),
       ),
-      builder: (context) => CommunityPost(),
     );
 
     // 게시물이 추가된 경우 리스트에 추가
@@ -31,6 +34,7 @@ class _CommunityState extends State<Community> {
       });
     }
   }
+
 
   // 댓글 추가 함수
   void _addComment(int postIndex) {
@@ -130,7 +134,6 @@ class _CommunityState extends State<Community> {
     );
   }
 
-
   // 선택한 카테고리의 게시물만 반환하는 함수
   List<Map<String, dynamic>> _getFilteredPosts() {
     return _posts.where((post) {
@@ -165,13 +168,13 @@ class _CommunityState extends State<Community> {
                     // 카테고리 선택 버튼
                     Row(
                       children: [
-                        _buildCategoryButton('실시간 게시물'),
+                        _buildCategoryButton(0),
                         SizedBox(width: 10),
-                        _buildCategoryButton('등산기록'),
+                        _buildCategoryButton(1),
                       ],
                     ),
                     GestureDetector(
-                      onTap: () => _showPostBottomSheet(context),
+                      onTap: () => _showPostDialog(context),
                       child: Container(
                         padding: EdgeInsets.all(8),
                         child: Image.network(
@@ -357,7 +360,7 @@ class _CommunityState extends State<Community> {
                                 ),
                               ),
                               IconButton(
-                                icon: Icon(Icons.send, color: Colors.blue),
+                                icon: Icon(Icons.send, color: Colors.green),
                                 onPressed: () => _addComment(index),
                               ),
                             ],
@@ -376,7 +379,7 @@ class _CommunityState extends State<Community> {
   }
 
   // 카테고리 버튼 생성 함수
-  Widget _buildCategoryButton(String category) {
+  Widget _buildCategoryButton(int category) {
     return ElevatedButton(
       onPressed: () {
         setState(() {
@@ -392,7 +395,7 @@ class _CommunityState extends State<Community> {
         side: BorderSide(color: Colors.green, width: 1),
       ),
       child: Text(
-        category,
+        category==0?'실시간 게시물':'등산기록',
         style: TextStyle(
           color: _selectedCategory == category ? Colors.white : Colors.green,
           fontWeight: FontWeight.w600,
