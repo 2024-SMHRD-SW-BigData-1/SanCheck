@@ -8,6 +8,7 @@ import 'package:sancheck/screen/find_pw.dart';
 import 'package:sancheck/screen/join_page.dart';
 import 'package:sancheck/screen/login_success.dart';
 import 'package:sancheck/service/auth_service.dart';
+import 'package:sancheck/globals.dart';
 
 Dio dio = Dio();
 final storage = FlutterSecureStorage(); // Singleton pattern for global usage
@@ -202,6 +203,7 @@ class _LoginPageState extends State<LoginPage> {
       if (user != null) {
         String userDataString = json.encode(user.toJson());
         await storage.write(key: 'user', value: userDataString);
+        userModel =  await _authService.readLoginInfo();
 
         Navigator.pushReplacement(
           context,

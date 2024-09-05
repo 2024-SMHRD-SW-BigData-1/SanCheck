@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:sancheck/model/user_model.dart';
+import 'package:sancheck/globals.dart';
 import 'package:sancheck/screen/delete_id.dart';
-import 'package:sancheck/screen/login_page.dart';
+import 'package:sancheck/screen/loading_page.dart';
 import 'package:sancheck/screen/login_success.dart';
-import 'package:sancheck/service/auth_service.dart';
 
 class MyInfo extends StatefulWidget {
 
-  final UserModel user;
   final String formattedDate;
 
   // 생성자를 통해 user와 formattedDate를 받음
-  MyInfo({required this.user, required this.formattedDate});
+  MyInfo({required this.formattedDate});
 
 
   @override
@@ -31,6 +28,10 @@ class _MyInfoState extends State<MyInfo> {
 
   @override
   Widget build(BuildContext context) {
+
+    if(userModel==null){
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_)=>LoadingPage()));
+    }
 
     void _onItemTapped(int index) {
       Navigator.pushAndRemoveUntil(
@@ -79,7 +80,7 @@ class _MyInfoState extends State<MyInfo> {
                         
                         // 이름 
                         TextSpan(
-                          text: widget.user.userName,
+                          text: userModel!.userName,
                           style: TextStyle(
                             color: Colors.black,
                             fontSize: 20,
@@ -123,19 +124,19 @@ class _MyInfoState extends State<MyInfo> {
                   InfoRow(
                     icon: "https://via.placeholder.com/45x45",
                     label: '전화번호',
-                    value: widget.user.userPhone,
+                    value: userModel!.userPhone,
                   ),
                   SizedBox(height: 20),
                   InfoRow(
                     icon: "https://via.placeholder.com/45x45",
                     label: '이메일',
-                    value: widget.user.userId,
+                    value: userModel!.userId,
                   ),
                   SizedBox(height: 20),
                   InfoRow(
                     icon: "https://via.placeholder.com/30x30",
                     label: '성별',
-                    value: widget.user.userGender == 'M' ?'남성':'여성',
+                    value: userModel!.userGender == 'M' ?'남성':'여성',
                   ),
                 ],
               ),

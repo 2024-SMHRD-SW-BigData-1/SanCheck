@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:location/location.dart';
 import 'package:provider/provider.dart';
+import 'package:sancheck/globals.dart';
 import 'package:sancheck/provider/mountain_provider.dart';
 import 'package:sancheck/screen/home_mt_detail.dart';
+import 'package:sancheck/screen/loading_page.dart';
 import 'package:sancheck/service/mountain_service.dart';
 
 Dio dio = Dio();
@@ -20,7 +22,6 @@ class GpxNavigation extends StatefulWidget {
 
 class GpxNavigationState extends State<GpxNavigation> {
 
-  final MountainService _mountainService = MountainService(); // MountainService 인스턴스 생성
   NCameraPosition _cameraPosition = const NCameraPosition(
     target: NLatLng(37.5665, 126.978), // 서울 시청
     zoom: 20,
@@ -75,7 +76,6 @@ class GpxNavigationState extends State<GpxNavigation> {
         return;
       }
     }
-    await selectAllMountain();
   }
 
   // Naver Map SDK 초기화
@@ -83,27 +83,16 @@ class GpxNavigationState extends State<GpxNavigation> {
     await NaverMapSdk.instance.initialize(clientId: '119m2j9zpj');
   }
 
-  List<dynamic> _markerPositions = [];
-
-  // 모든 산 정보를 가져오는 함수
-  Future<void> selectAllMountain() async {
-    try {
-      List<dynamic> mountains = await _mountainService.fetchAllMountains();
-      setState(() {
-        _markerPositions = mountains;
-      });
-    } catch (e) {
-      print("Error fetching all mountains: $e");
-    }
-  }
 
   // 마커를 지도에 추가하는 함수
   void addMarkersToMap(controller) {
-    if (_markerPositions.isEmpty) return;
+    if (allMountains!.isEmpty || allMountains==null){
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_)=>LoadingPage()));
+    }
 
     // 맵 컨트롤러가 준비된 후 마커를 추가하도록 수정
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _markerPositions.forEach((mountain) {
+      allMountains!.forEach((mountain) {
 
         // mountain은 배열 안의 각 객체(산 정보)를 나타냅니다.
         final marker = NMarker(
@@ -192,7 +181,6 @@ class GpxNavigationState extends State<GpxNavigation> {
                   southWest: NLatLng(31.43, 122.37),
                   northEast: NLatLng(44.35, 132.0),
                 ),
-                locale: Locale('kr'),
               ),
               onMapReady: (controller) {
                 print("홈페이지 맵 로딩 완료");

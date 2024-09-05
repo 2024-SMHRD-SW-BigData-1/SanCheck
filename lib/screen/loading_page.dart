@@ -1,9 +1,14 @@
+// 앱 시작 시 로딩 화면
+// 위치권한, 로그인 여부 체크 + 산 데이터 전역변수에 저장해서 처음 지도 초기화 속도 빠르게
+
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:sancheck/globals.dart';
 import 'package:sancheck/model/user_model.dart';
 import 'package:sancheck/screen/login_page.dart';
 import 'package:sancheck/screen/login_success.dart';
 import 'package:sancheck/service/auth_service.dart';
+import 'package:sancheck/service/mountain_service.dart';
 
 class LoadingPage extends StatefulWidget {
   const LoadingPage({super.key});
@@ -14,7 +19,7 @@ class LoadingPage extends StatefulWidget {
 
 class _LoadingPageState extends State<LoadingPage> with WidgetsBindingObserver {
   final AuthService _authService = AuthService(); // Create instance of AuthService
-
+  final MountainService _mountainService = MountainService(); // MountainService 인스턴스 생성
 
   @override
   void initState() {
@@ -45,12 +50,23 @@ class _LoadingPageState extends State<LoadingPage> with WidgetsBindingObserver {
       _showPermissionDialog();
     } else if (status.isGranted) {
       // 권한이 허용된 경우
+      _selectAllMountain();
       _readLoginInfo();
     } else if (status.isPermanentlyDenied) {
       // 권한이 영구적으로 거절된 경우
       _showPermissionSettingsDialog();
     }
   }
+
+  Future<void> _selectAllMountain() async {
+    try {
+      List<dynamic> mountains = await _mountainService.fetchAllMountains();
+      allMountains = mountains;
+    } catch (e) {
+      print("Error fetching all mountains: $e");
+    }
+  }
+
 
   void _showPermissionDialog() {
     showDialog(
@@ -108,6 +124,7 @@ class _LoadingPageState extends State<LoadingPage> with WidgetsBindingObserver {
     UserModel? user = await _authService.readLoginInfo();
 
     if (user != null) {
+      userModel = user;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => LoginSuccess(selectedIndex: 1)),

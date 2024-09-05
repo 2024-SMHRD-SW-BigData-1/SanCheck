@@ -1,11 +1,10 @@
 // my_page.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // flutter_secure_storage import
 import 'package:intl/intl.dart';
-import 'package:sancheck/model/user_model.dart';
+import 'package:sancheck/globals.dart';
+import 'package:sancheck/screen/loading_page.dart';
 import 'package:sancheck/service/auth_service.dart';
-import 'login_page.dart'; // login_page.dart 파일을 import
 import 'my_info.dart'; // my_info.dart import
 import 'mt_memo.dart'; // MtMemo 페이지 import
 import 'my_medal.dart'; // MyMedal 페이지 import
@@ -19,35 +18,30 @@ class MyPage extends StatefulWidget {
 }
 
 class _MyPageState extends State<MyPage> {
-  // flutter_secure_storage를 사용하여 데이터를 저장하고 삭제할 수 있도록 초기화
   final AuthService _authService = AuthService(); // AuthService 인스턴스 생성
-  UserModel? _user;
   late String _formattedDate;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _readLoginInfo();
+    _initialize();
   }
 
-  Future<void> _readLoginInfo() async {
-    UserModel? tempUser = await _authService.readLoginInfo();
-
-    if (tempUser == null) {
+  Future<void> _initialize() async {
+    if (userModel == null) {
       Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (_) => LoginPage()));
+          context, MaterialPageRoute(builder: (_) => const LoadingPage()));
     }else{
       setState(() {
-        _user = tempUser;
-        _formattedDate = DateFormat('yyyy-MM-dd').format(_user!.userBirthdate);
+        _formattedDate = DateFormat('yyyy-MM-dd').format(userModel!.userBirthdate);
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if(_user==null){
+    if(userModel==null){
       return CircularProgressIndicator();
     }
 
@@ -82,7 +76,7 @@ class _MyPageState extends State<MyPage> {
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: UserProfile(
         userLevel: 1, // 원하는 레벨을 설정하세요
-        nickname: _user!.userName,
+        nickname: userModel!.userName,
         iconUrl: 'https://img.icons8.com/color/96/babys-room.png',
       ),
     );
@@ -117,7 +111,7 @@ class _MyPageState extends State<MyPage> {
           // 버튼 클릭 시 실행할 기능
           switch (title) {
             case '내 정보':
-              Navigator.push(context, MaterialPageRoute(builder: (_) => MyInfo(user: _user!, formattedDate: _formattedDate)));
+              Navigator.push(context, MaterialPageRoute(builder: (_) => MyInfo(formattedDate: _formattedDate)));
               break;
             case '등산 기록':
               Navigator.push(
@@ -182,10 +176,10 @@ class _MyPageState extends State<MyPage> {
   void handleLogout() async {
     try {
       await _authService.logout(); // AuthService를 사용하여 로그아웃 처리
-
+      userModel = null;
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => LoginPage()), // 이동할 페이지
+        MaterialPageRoute(builder: (_) => const LoadingPage()), // 이동할 페이지
             (Route<dynamic> route) => false, // 모든 이전 화면을 제거
       );
     } catch (e) {

@@ -298,7 +298,6 @@ Future<void> _initialize() async{
                       southWest: NLatLng(31.43, 122.37),
                       northEast: NLatLng(44.35, 132.0),
                     ),
-                    locale: Locale('kr'),
                   ),
                   onMapReady: (controller) {
                     print("등산하기 맵 로딩 완료");
